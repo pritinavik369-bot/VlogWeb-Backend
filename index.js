@@ -71,7 +71,17 @@ app.use((err, req, res, next) => {
 
 // DB connection
 mongoose.connect(process.env.MONGO)
-  .then(() => console.log("✅ MongoDB connected"))
+  .then(() => {
+    console.log("✅ MongoDB connected");
+    // Start server internally only if not in Vercel (basic check) or if run directly
+    // This allows local testing via 'node index.js' or 'npm run dev'
+    if (process.env.NODE_ENV !== 'production') {
+      const PORT = process.env.PORT || 3000;
+      app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}!!!`);
+      });
+    }
+  })
   .catch(err => console.log("❌ MongoDB error", err));
 
 export default app;

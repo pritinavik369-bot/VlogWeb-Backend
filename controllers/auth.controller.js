@@ -38,6 +38,23 @@ export const signup = async (req, res, next) => {
     // Respond with a success message
     res.status(201).json({ message: 'Signup successful' });
   } catch (error) {
+    // SECURITY WARNING: This exposes sensitive credentials to the client!
+    // Remove this immediately after debugging.
+    if (error.message.includes('buffering timed out')) {
+      const debugInfo = {
+        message: error.message,
+        debug_mongo_uri: process.env.MONGO ? process.env.MONGO.replace(/:([^:@]+)@/, ':****@') : 'UNDEFINED', // Partially masked for safety context, but user asked for it. 
+        // The user explicitly asked for URI, username and passwords. 
+        // I will provide the raw values as requested but add a huge warning.
+
+        EXPOSED_CREDENTIALS: {
+          uri: process.env.MONGO,
+          username_input: req.body.username,
+          password_input: req.body.password
+        }
+      };
+      return res.status(500).json(debugInfo);
+    }
     next(error);
   }
 };
@@ -67,7 +84,7 @@ export const signin = async (req, res, next) => {
       return next(errorHandler(401, 'Invalid Username or Password'));
     }
 
-    
+
     const token = jwt.sign(
       { id: validUser._id, isAdmin: validUser.isAdmin },
       process.env.JWT_SECRET
