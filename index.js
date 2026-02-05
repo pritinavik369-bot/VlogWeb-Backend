@@ -15,6 +15,30 @@ const app = express();
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'Backend is running' });
 });
+
+app.get('/debug-db', async (req, res) => {
+  const state = mongoose.connection.readyState;
+  let error = null;
+  let collections = [];
+
+  try {
+    if (state === 1) {
+      collections = await mongoose.connection.db.listCollections().toArray();
+      collections = collections.map(c => c.name);
+    }
+  } catch (err) {
+    error = err.message;
+  }
+
+  res.json({
+    readyState: state,
+    readyStateDesc: ['disconnected', 'connected', 'connecting', 'disconnecting'][state],
+    mongoUri: process.env.MONGO ? process.env.MONGO.substring(0, 15) + '...' : 'UNDEFINED',
+    error,
+    collections
+  });
+});
+
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
