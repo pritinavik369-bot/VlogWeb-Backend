@@ -11,7 +11,10 @@ import cors from "cors";
 dotenv.config();
 
 const app = express();
-
+// Health check (IMPORTANT)
+app.get('/api/health', (req, res) => {
+  res.json({ success: true, message: 'Backend is running' });
+});
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
@@ -29,10 +32,7 @@ app.use('/server/auth', authRoutes);
 app.use('/server/post', postRoutes);
 app.use('/server/comment', commentRoutes);
 
-// Health check (IMPORTANT)
-app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: "Backend is running" });
-});
+
 
 // Error handler
 app.use((err, req, res, next) => {
